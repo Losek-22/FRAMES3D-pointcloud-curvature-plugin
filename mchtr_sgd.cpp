@@ -103,7 +103,7 @@ void mchtr_sgd::update_parameters(const double& x_grad, const double& y_grad, co
 	@param		*_grad - partial diffrential of the loss function with respect to *
 				sphere - sphere being fit
 	*/
-	constexpr double learning_rate = 0.0001;
+	constexpr double learning_rate = 0.2;
 	sphere.x = sphere.x - learning_rate * x_grad;
 	sphere.y = sphere.y - learning_rate * y_grad;
 	sphere.z = sphere.z - learning_rate * z_grad;
