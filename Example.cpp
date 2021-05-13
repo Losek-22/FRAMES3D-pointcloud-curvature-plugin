@@ -26,6 +26,7 @@ struct local_curvature : public ogx::Plugin::EasyMethod {
 	}
 
 	virtual void Run(Context& context) {
+
 		// check neighbours_count validity (user input)
 		if (neighbours_count < 1) {
 			ReportError(L"K of nearest neighbours lower than 1.");
@@ -69,7 +70,7 @@ struct local_curvature : public ogx::Plugin::EasyMethod {
 		// progress var for progress bar
 		int progress = 0;
 
-		// iterate over 3D points
+		// iterate over all 3D points
 		for (const auto& xyz : ogx::Data::Clouds::RangeLocalXYZConst(pointsRange)) {
 
 			// find KNNs
@@ -79,6 +80,9 @@ struct local_curvature : public ogx::Plugin::EasyMethod {
 			cloud->GetAccess().FindPoints(searchKNNKernel, neighboursRange);
 			auto neighboursXYZ = ogx::Data::Clouds::RangeLocalXYZConst(neighboursRange);
 
+			//ogx::Math::CalcBestSphere3D(vec.begin())
+			neighbouring_points.clear();
+
 			// iterate over KNNs of given point	
 			for (const auto& neighbourXYZ : neighboursXYZ) {
 				neighbouring_points.push_back(neighbourXYZ);
@@ -86,6 +90,7 @@ struct local_curvature : public ogx::Plugin::EasyMethod {
 
 			// do stochastic gradient descent and fit a sphere, get its radius
 			curvatures.push_back(static_cast<float>(mchtr_sgd::find_sphere_r(neighbouring_points, xyz)));
+			//curvatures.push_back(ogx::Math::CalcBestSphere3D(neighbouring_points.begin(), neighbouring_points.end()).m_radius);
 
 			// progress bar update
 			++progress;
