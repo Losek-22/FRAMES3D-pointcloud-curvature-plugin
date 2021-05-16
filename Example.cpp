@@ -14,10 +14,10 @@ struct local_curvature : public ogx::Plugin::EasyMethod {
 
 	// parameters
 	Data::ResourceID node_id;
-	int neighbours_count{ -1 };
+	int neighbours_count{ 15 };
 	
-	// constructor
-	local_curvature() : EasyMethod(L"Przemys³aw Wysocki", L"Finds local curvatures of the point cloud. Uses stochastic gradient descent to fit a sphere to n nearest neighbours and retrieves its radius.") {}
+	// inheritance from EasyMethod
+	local_curvature() : EasyMethod(L"Przemys³aw Wysocki", L"Calculates curvature of the surface.") {}
 
 	// add input/output parameters
 	virtual void DefineParameters(ParameterBank& bank) {
@@ -59,10 +59,9 @@ struct local_curvature : public ogx::Plugin::EasyMethod {
 		cloud->GetAccess().GetAllPoints(pointsRange);
 
 		// KNN setup
-		//ogx::Data::Clouds::PointsRange neighboursRange; TO BY£O
 		auto searchKNNKernel = ogx::Data::Clouds::KNNSearchKernel(ogx::Math::Point3D(0, 0, 0), neighbours_count);
 
-		// data collection for stochastic gradient descent setup and curvatures
+		// data collection variables
 		std::vector<ogx::Data::Clouds::Point3D> neighbouring_points;
 		std::vector<float> curvatures;
 		curvatures.reserve(pointsRange.size());
@@ -75,22 +74,20 @@ struct local_curvature : public ogx::Plugin::EasyMethod {
 
 			// find KNNs
 			searchKNNKernel.GetPoint() = xyz.cast<double>();
-			ogx::Data::Clouds::PointsRange neighboursRange;	// dodane
-			//neighboursRange.clear(); TO BY£O
+			ogx::Data::Clouds::PointsRange neighboursRange;
 			cloud->GetAccess().FindPoints(searchKNNKernel, neighboursRange);
 			auto neighboursXYZ = ogx::Data::Clouds::RangeLocalXYZConst(neighboursRange);
 
-			//ogx::Math::CalcBestSphere3D(vec.begin())
+			// clear the vector containing each points' neighbours
 			neighbouring_points.clear();
 
-			// iterate over KNNs of given point	
+			// iterate over KNNs of given point, add them to vector	
 			for (const auto& neighbourXYZ : neighboursXYZ) {
 				neighbouring_points.push_back(neighbourXYZ);
 			}
 
-			// do stochastic gradient descent and fit a sphere, get its radius
-			curvatures.push_back(static_cast<float>(mchtr_sgd::find_sphere_r(neighbouring_points, xyz)));
-			//curvatures.push_back(ogx::Math::CalcBestSphere3D(neighbouring_points.begin(), neighbouring_points.end()).m_radius);
+			// fit a sphere to neighbouring points (contained in vec) and get the surface curvature
+			curvatures.push_back(static_cast<float>(1.0/(mchtr_sgd::find_sphere_r(neighbouring_points, xyz))));
 
 			// progress bar update
 			++progress;
@@ -106,6 +103,7 @@ struct local_curvature : public ogx::Plugin::EasyMethod {
 		// add the layer to point range and set it to curvatures
 		pointsRange.SetLayerVals(curvatures, *layer);
 
+		// success message
 		OGX_LINE.Msg(ogx::Level::Info, L"Pomyœlnie policzono krzywizny.");
 	}
 };
@@ -189,7 +187,6 @@ struct cut_pancake : public ogx::Plugin::EasyMethod {
 				ReportError(L"Could not update progress bar.");
 			}
 		}
-
 		OGX_LINE.Msg(ogx::Level::Info, L"Pomyœlnie usuniêto punkty.");
 	}
 };

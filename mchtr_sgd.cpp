@@ -57,7 +57,7 @@ double mchtr_sgd::find_sphere_r(const std::vector<ogx::Data::Clouds::Point3D>& d
 	@returns	sphere.r - final radius of the sphere
 	*/
 	constexpr int no_epochs = 30;
-	mchtr_sgd::sphere sphere = mchtr_sgd::init_sphere(central_point, 0.01, 0.15);
+	mchtr_sgd::sphere sphere = mchtr_sgd::init_sphere(central_point, 0.01, 0.5);
 	for (int i = 0; i < no_epochs; ++i) {
 		for (const ogx::Data::Clouds::Point3D& point : data) {
 			double x_gradient = mchtr_sgd::x_grad(sphere, point);
@@ -103,8 +103,8 @@ void mchtr_sgd::update_parameters(const double& x_grad, const double& y_grad, co
 	@param		*_grad - partial diffrential of the loss function with respect to *
 				sphere - sphere being fit
 	*/
-	constexpr double xyz_learning_rate = 0.05;
-	constexpr double r_learning_rate = 0.25;
+	constexpr double xyz_learning_rate = 0.15;
+	constexpr double r_learning_rate = 0.15;
 	sphere.x = sphere.x - xyz_learning_rate * x_grad;
 	sphere.y = sphere.y - xyz_learning_rate * y_grad;
 	sphere.z = sphere.z - xyz_learning_rate * z_grad;
