@@ -3,7 +3,6 @@
 #include <ogx/Data/Clouds/KNNSearchKernel.h>
 #include <ogx/Data/Clouds/SphericalSearchKernel.h>
 #include <ogx/Data/Primitives/PrimitiveHelpers.h>
-#include <iostream>
 #include <vector>
 #include "mchtr_sgd.h"
 
@@ -117,7 +116,7 @@ struct cut_pancake : public ogx::Plugin::EasyMethod {
 	double center_point_y{ 0 };
 	double center_point_z{ 0 };
 
-	// constructor
+	// inheritance after EasyMethod
 	cut_pancake() : EasyMethod(L"Przemys³aw Wysocki", L"Cuts points outside the area of a circle of given radius and center point.") {}
 
 	// add input/output parameters
@@ -175,7 +174,7 @@ struct cut_pancake : public ogx::Plugin::EasyMethod {
 		// iterate over 3D points
 		for (const auto& xyz : ogx::Data::Clouds::RangeLocalXYZConst(pointsRange)) {
 
-			// check if points lie within a circle, if so, delete them
+			// check if points lie outside of circle, if so, delete them
 			++state;
 			if (Math::CalcPointToPointDistance3D(xyz.cast<Real>(), central_point) > pancake_range) {
 				state->set(Data::Clouds::PS_DELETED);
